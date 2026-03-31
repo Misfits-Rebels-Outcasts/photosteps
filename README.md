@@ -108,6 +108,10 @@ PhotoSteps is "Markdown for image editing" + AI.
 - WebGL rendering
 - Lightweight, mostly client-side
 
+## PhotoSteps Studio
+
+![PhotoSteps Studio](./public/images/photosteps.jpg)
+
 ## 🧱 Schema and Render Contract
 
 PhotoSteps includes a formal schema and render contract for nodes and pipelines.  
