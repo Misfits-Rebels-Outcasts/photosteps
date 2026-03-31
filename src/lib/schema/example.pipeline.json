@@ -1,0 +1,69 @@
+{
+  "pipelineVersion": "2.0",
+  "app": "PhotoSteps",
+  "engine": "CAT",
+  "defaults": {
+    "workingColorSpace": "linear_sRGB",
+    "alphaMode": "premultiplied",
+    "coordinateSpace": "normalized_uv",
+    "origin": "top_left"
+  },
+  "steps": [
+    {
+      "id": 1,
+      "node": "ReadImage",
+      "params": {
+        "source": "portrait.jpg"
+      }
+    },
+    {
+      "id": 2,
+      "node": "Adjust",
+      "input": 1,
+      "params": {
+        "exposure": 0.2,
+        "contrast": 1.1
+      }
+    },
+    {
+      "id": 3,
+      "node": "Blur",
+      "input": 2,
+      "params": {
+        "type": "gaussian",
+        "radius": 4
+      }
+    },
+    {
+      "id": 4,
+      "node": "ColorTone",
+      "input": 3,
+      "params": {
+        "style": "warm",
+        "intensity": 0.3
+      }
+    },
+    {
+      "id": 5,
+      "node": "Blend",
+      "inputs": {
+        "imageA": 1,
+        "imageB": 4,
+        "mask": null
+      },
+      "params": {
+        "mode": "softLight",
+        "opacity": 0.4
+      }
+    },
+    {
+      "id": 6,
+      "node": "ExportImage",
+      "input": 5,
+      "params": {
+        "format": "jpeg",
+        "quality": 0.9
+      }
+    }
+  ]
+}

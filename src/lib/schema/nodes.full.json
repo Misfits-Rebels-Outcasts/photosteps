@@ -1,0 +1,1016 @@
+{
+  "specVersion": "2.0",
+  "product": "PhotoSteps",
+  "engine": "CAT",
+  "defaults": {
+    "coordinateSpace": "normalized_uv",
+    "origin": "top_left",
+    "workingColorSpace": "linear_sRGB",
+    "outputColorSpace": "inherit",
+    "alphaMode": "premultiplied",
+    "edgeMode": "clamp",
+    "sampling": {
+      "minFilter": "linear",
+      "magFilter": "linear"
+    }
+  },
+  "nodes": [
+    {
+      "name": "ReadImage",
+      "version": "1.0",
+      "category": "input",
+      "description": "Loads a source image into the pipeline.",
+      "semantic": {
+        "operation": "read_image",
+        "intentAliases": [
+          "load image",
+          "open photo",
+          "start with this image"
+        ]
+      },
+      "io": {
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "source",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Asset identifier, file path, or URL."
+        },
+        {
+          "name": "orientation",
+          "type": "enum",
+          "required": false,
+          "default": "auto",
+          "enumValues": [
+            "auto",
+            "up",
+            "down",
+            "left",
+            "right"
+          ],
+          "description": "How source orientation metadata is resolved."
+        },
+        {
+          "name": "workingColorSpace",
+          "type": "enum",
+          "required": false,
+          "default": "linear_sRGB",
+          "enumValues": [
+            "sRGB",
+            "linear_sRGB",
+            "displayP3"
+          ],
+          "description": "Working color space after load."
+        },
+        {
+          "name": "alphaMode",
+          "type": "enum",
+          "required": false,
+          "default": "premultiplied",
+          "enumValues": [
+            "premultiplied",
+            "straight"
+          ],
+          "description": "Alpha storage mode."
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "inherit_from_source",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "cpu_input",
+          "passCount": 0
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "ReadImageWebGPU_v1",
+          "shaderEntryPoints": []
+        }
+      }
+    },
+    {
+      "name": "ExportImage",
+      "version": "1.0",
+      "category": "output",
+      "description": "Writes the final image out of the pipeline.",
+      "semantic": {
+        "operation": "export_image",
+        "intentAliases": [
+          "save image",
+          "export",
+          "write output"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "file",
+            "type": "file"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "format",
+          "type": "enum",
+          "required": false,
+          "default": "jpeg",
+          "enumValues": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "description": "Output format."
+        },
+        {
+          "name": "quality",
+          "type": "number",
+          "required": false,
+          "default": 0.92,
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.01,
+          "description": "Compression quality for lossy formats."
+        },
+        {
+          "name": "embedColorProfile",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Whether to embed output color profile."
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "inherit",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "cpu_output",
+          "passCount": 0
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "ExportImageWebGPU_v1",
+          "shaderEntryPoints": []
+        }
+      }
+    },
+    {
+      "name": "Adjust",
+      "version": "1.0",
+      "category": "adjustment",
+      "description": "Applies foundational tonal and color adjustments in one node.",
+      "semantic": {
+        "operation": "adjust_basic",
+        "intentAliases": [
+          "brighter",
+          "darker",
+          "more contrast",
+          "warmer",
+          "cooler",
+          "more vivid"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "exposure",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -2.0,
+          "max": 2.0,
+          "step": 0.01,
+          "unit": "stops"
+        },
+        {
+          "name": "brightness",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -1.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        },
+        {
+          "name": "contrast",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.0,
+          "max": 4.0,
+          "step": 0.01,
+          "unit": "multiplier"
+        },
+        {
+          "name": "saturation",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.0,
+          "max": 2.0,
+          "step": 0.01,
+          "unit": "multiplier"
+        },
+        {
+          "name": "temperature",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -1000.0,
+          "max": 1000.0,
+          "step": 1.0,
+          "unit": "arbitrary_warm_cool"
+        },
+        {
+          "name": "tint",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -100.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "arbitrary_green_magenta"
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "linear_sRGB",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "single_pass",
+          "passCount": 1
+        },
+        "mathNotes": {
+          "contrastPivot": 0.5,
+          "applyInLinearColor": true,
+          "preserveAlpha": true
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "AdjustWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Crop",
+      "version": "1.0",
+      "category": "geometry",
+      "description": "Crops the image to a rectangular region.",
+      "semantic": {
+        "operation": "crop",
+        "intentAliases": [
+          "crop",
+          "trim edges",
+          "focus subject",
+          "make square"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "rect",
+          "type": "rect",
+          "required": true,
+          "default": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "unit": "normalized_uv",
+          "description": "Crop rectangle in normalized coordinates."
+        },
+        {
+          "name": "aspectRatio",
+          "type": "enum",
+          "required": false,
+          "default": "free",
+          "enumValues": [
+            "free",
+            "1:1",
+            "4:5",
+            "3:4",
+            "16:9"
+          ],
+          "description": "Optional aspect ratio lock."
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "inherit",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "transparent",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "single_pass",
+          "passCount": 1
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "CropWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Transform",
+      "version": "1.0",
+      "category": "geometry",
+      "description": "Applies rotate, scale, translate, and flip transforms.",
+      "semantic": {
+        "operation": "transform",
+        "intentAliases": [
+          "rotate",
+          "straighten",
+          "resize look",
+          "flip image",
+          "move image"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "rotation",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -180.0,
+          "max": 180.0,
+          "step": 0.1,
+          "unit": "degrees"
+        },
+        {
+          "name": "scaleX",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.01,
+          "max": 10.0,
+          "step": 0.01,
+          "unit": "multiplier"
+        },
+        {
+          "name": "scaleY",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.01,
+          "max": 10.0,
+          "step": 0.01,
+          "unit": "multiplier"
+        },
+        {
+          "name": "translateX",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -1.0,
+          "max": 1.0,
+          "step": 0.001,
+          "unit": "normalized_uv"
+        },
+        {
+          "name": "translateY",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -1.0,
+          "max": 1.0,
+          "step": 0.001,
+          "unit": "normalized_uv"
+        },
+        {
+          "name": "flipX",
+          "type": "boolean",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "flipY",
+          "type": "boolean",
+          "required": false,
+          "default": false
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "inherit",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "transparent",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "single_pass",
+          "passCount": 1
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "TransformWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Blur",
+      "version": "1.0",
+      "category": "effect",
+      "description": "Applies blur for softness, depth, or motion.",
+      "semantic": {
+        "operation": "blur",
+        "intentAliases": [
+          "soften",
+          "dreamy",
+          "blur background",
+          "motion blur"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "type",
+          "type": "enum",
+          "required": false,
+          "default": "gaussian",
+          "enumValues": [
+            "gaussian",
+            "disc",
+            "zoom",
+            "motion"
+          ]
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "required": false,
+          "default": 8.0,
+          "min": 0.0,
+          "max": 100.0,
+          "step": 0.1,
+          "unit": "image_pixels"
+        },
+        {
+          "name": "center",
+          "type": "vec2",
+          "required": false,
+          "default": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "unit": "normalized_uv"
+        },
+        {
+          "name": "angle",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -180.0,
+          "max": 180.0,
+          "step": 0.1,
+          "unit": "degrees"
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "linear_sRGB",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "multi_pass",
+          "passCount": 2
+        },
+        "mathNotes": {
+          "radiusUnit": "image_pixels",
+          "gaussianIsSeparable": true,
+          "zoomCenterIsNormalized": true,
+          "motionAngleReference": "clockwise_from_positive_x"
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "BlurWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "ColorTone",
+      "version": "1.0",
+      "category": "style",
+      "description": "Applies a stylistic tonal treatment or preset look.",
+      "semantic": {
+        "operation": "color_tone",
+        "intentAliases": [
+          "warm look",
+          "cool look",
+          "sepia",
+          "cinematic",
+          "monochrome",
+          "vintage approximation"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "style",
+          "type": "enum",
+          "required": false,
+          "default": "none",
+          "enumValues": [
+            "none",
+            "sepia",
+            "cinematic",
+            "cool",
+            "warm",
+            "mono"
+          ]
+        },
+        {
+          "name": "intensity",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        },
+        {
+          "name": "highlights",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -1.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        },
+        {
+          "name": "shadows",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": -1.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "linear_sRGB",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "single_pass",
+          "passCount": 1
+        },
+        "mathNotes": {
+          "styleModel": "matrix_or_curve_based",
+          "intensityIsPostStyleMix": true,
+          "preserveLumaWhenPossible": true
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "ColorToneWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Sharpen",
+      "version": "1.0",
+      "category": "detail",
+      "description": "Enhances local contrast to make the image appear crisper.",
+      "semantic": {
+        "operation": "sharpen",
+        "intentAliases": [
+          "sharper",
+          "crisper",
+          "more detail",
+          "clearer"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "amount",
+          "type": "number",
+          "required": false,
+          "default": 0.5,
+          "min": 0.0,
+          "max": 3.0,
+          "step": 0.01,
+          "unit": "multiplier"
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.0,
+          "max": 10.0,
+          "step": 0.01,
+          "unit": "image_pixels"
+        },
+        {
+          "name": "threshold",
+          "type": "number",
+          "required": false,
+          "default": 0.0,
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "linear_sRGB",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "multi_pass",
+          "passCount": 2
+        },
+        "mathNotes": {
+          "method": "unsharp_mask_like",
+          "preserveAlpha": true
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "SharpenWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Vignette",
+      "version": "1.0",
+      "category": "style",
+      "description": "Darkens or lightens edges to draw attention toward the center.",
+      "semantic": {
+        "operation": "vignette",
+        "intentAliases": [
+          "subtle vignette",
+          "draw focus",
+          "darken edges"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "intensity",
+          "type": "number",
+          "required": false,
+          "default": 0.3,
+          "min": -1.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "required": false,
+          "default": 0.75,
+          "min": 0.0,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "normalized"
+        },
+        {
+          "name": "softness",
+          "type": "number",
+          "required": false,
+          "default": 0.5,
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        },
+        {
+          "name": "center",
+          "type": "vec2",
+          "required": false,
+          "default": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "unit": "normalized_uv"
+        }
+      ],
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "linear_sRGB",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "single_pass",
+          "passCount": 1
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "VignetteWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Blend",
+      "version": "1.0",
+      "category": "compositing",
+      "description": "Combines two prior images into one output.",
+      "semantic": {
+        "operation": "blend",
+        "intentAliases": [
+          "blend original with edited",
+          "mix two looks",
+          "overlay result",
+          "combine images"
+        ]
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "imageA",
+            "type": "image",
+            "required": true
+          },
+          {
+            "name": "imageB",
+            "type": "image",
+            "required": true
+          },
+          {
+            "name": "mask",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "outputs": [
+          {
+            "name": "image",
+            "type": "image"
+          }
+        ]
+      },
+      "params": [
+        {
+          "name": "mode",
+          "type": "enum",
+          "required": false,
+          "default": "normal",
+          "enumValues": [
+            "normal",
+            "multiply",
+            "screen",
+            "overlay",
+            "softLight"
+          ]
+        },
+        {
+          "name": "opacity",
+          "type": "number",
+          "required": false,
+          "default": 1.0,
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.01,
+          "unit": "normalized"
+        }
+      ],
+      "references": {
+        "supportsStepReferences": true,
+        "referenceInputs": [
+          "imageA",
+          "imageB",
+          "mask"
+        ]
+      },
+      "renderContract": {
+        "coordinateSpace": "normalized_uv",
+        "origin": "top_left",
+        "workingColorSpace": "linear_sRGB",
+        "outputColorSpace": "inherit",
+        "alphaMode": "premultiplied",
+        "edgeMode": "clamp",
+        "sampling": {
+          "minFilter": "linear",
+          "magFilter": "linear"
+        },
+        "passModel": {
+          "type": "single_pass",
+          "passCount": 1
+        },
+        "mathNotes": {
+          "blendSpace": "linear_sRGB",
+          "opacityAppliedToImageB": true,
+          "maskInterpretation": "mask_luminance_0_to_1",
+          "preserveAlpha": true
+        }
+      },
+      "backendBindings": {
+        "webgpu": {
+          "implementationId": "BlendWebGPU_v1",
+          "shaderEntryPoints": [
+            "main"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://photosteps.app/schema/photosteps-v2.schema.json",
+  "title": "PhotoSteps v2 Schema",
+  "description": "Formal JSON Schema for PhotoSteps node catalog and execution pipeline.",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/nodeCatalogDocument"
+    },
+    {
+      "$ref": "#/$defs/pipelineDocument"
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "numberOrInteger": {
+      "type": "number"
+    },
+    "vec2": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "rect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
+    },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minFilter": {
+          "enum": [
+            "linear",
+            "nearest"
+          ]
+        },
+        "magFilter": {
+          "enum": [
+            "linear",
+            "nearest"
+          ]
+        }
+      },
+      "required": [
+        "minFilter",
+        "magFilter"
+      ]
+    },
+    "passModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "single_pass",
+            "multi_pass",
+            "cpu_input",
+            "cpu_output"
+          ]
+        },
+        "passCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "passCount"
+      ]
+    },
+    "backendBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "implementationId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "shaderEntryPoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      },
+      "required": [
+        "implementationId",
+        "shaderEntryPoints"
+      ]
+    },
+    "backendBindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "webgpu": {
+          "$ref": "#/$defs/backendBinding"
+        }
+      },
+      "required": [
+        "webgpu"
+      ]
+    },
+    "ioPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "enum": [
+            "image",
+            "file"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ]
+    },
+    "semantic": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "intentAliases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      },
+      "required": [
+        "operation",
+        "intentAliases"
+      ]
+    },
+    "renderContract": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "coordinateSpace": {
+          "enum": [
+            "normalized_uv",
+            "pixel"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "top_left",
+            "bottom_left"
+          ]
+        },
+        "workingColorSpace": {
+          "enum": [
+            "inherit",
+            "inherit_from_source",
+            "sRGB",
+            "linear_sRGB",
+            "displayP3"
+          ]
+        },
+        "outputColorSpace": {
+          "enum": [
+            "inherit",
+            "sRGB",
+            "linear_sRGB",
+            "displayP3"
+          ]
+        },
+        "alphaMode": {
+          "enum": [
+            "premultiplied",
+            "straight"
+          ]
+        },
+        "edgeMode": {
+          "enum": [
+            "clamp",
+            "mirror",
+            "wrap",
+            "transparent"
+          ]
+        },
+        "sampling": {
+          "$ref": "#/$defs/sampling"
+        },
+        "passModel": {
+          "$ref": "#/$defs/passModel"
+        },
+        "mathNotes": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "coordinateSpace",
+        "origin",
+        "workingColorSpace",
+        "outputColorSpace",
+        "alphaMode",
+        "edgeMode",
+        "sampling",
+        "passModel"
+      ]
+    },
+    "paramBase": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "enum",
+            "vec2",
+            "rect"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "default": {},
+        "description": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "enumValues": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "integer",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ]
+    },
+    "nodeDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "version": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "category": {
+          "enum": [
+            "input",
+            "output",
+            "adjustment",
+            "geometry",
+            "effect",
+            "style",
+            "detail",
+            "compositing"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "semantic": {
+          "$ref": "#/$defs/semantic"
+        },
+        "io": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ioPort"
+              }
+            },
+            "outputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ioPort"
+              }
+            }
+          },
+          "required": [
+            "inputs",
+            "outputs"
+          ]
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/paramBase"
+          }
+        },
+        "references": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "supportsStepReferences": {
+              "type": "boolean"
+            },
+            "referenceInputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          },
+          "required": [
+            "supportsStepReferences",
+            "referenceInputs"
+          ]
+        },
+        "renderContract": {
+          "$ref": "#/$defs/renderContract"
+        },
+        "backendBindings": {
+          "$ref": "#/$defs/backendBindings"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "category",
+        "description",
+        "semantic",
+        "io",
+        "params",
+        "renderContract",
+        "backendBindings"
+      ]
+    },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coordinateSpace": {
+          "enum": [
+            "normalized_uv",
+            "pixel"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "top_left",
+            "bottom_left"
+          ]
+        },
+        "workingColorSpace": {
+          "enum": [
+            "sRGB",
+            "linear_sRGB",
+            "displayP3"
+          ]
+        },
+        "outputColorSpace": {
+          "enum": [
+            "inherit",
+            "sRGB",
+            "linear_sRGB",
+            "displayP3"
+          ]
+        },
+        "alphaMode": {
+          "enum": [
+            "premultiplied",
+            "straight"
+          ]
+        },
+        "edgeMode": {
+          "enum": [
+            "clamp",
+            "mirror",
+            "wrap",
+            "transparent"
+          ]
+        },
+        "sampling": {
+          "$ref": "#/$defs/sampling"
+        }
+      }
+    },
+    "stepMetadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "createdBy": {
+          "enum": [
+            "user",
+            "cat"
+          ]
+        },
+        "intent": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "paramsReadImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "orientation": {
+          "enum": [
+            "auto",
+            "up",
+            "down",
+            "left",
+            "right"
+          ]
+        },
+        "workingColorSpace": {
+          "enum": [
+            "sRGB",
+            "linear_sRGB",
+            "displayP3"
+          ]
+        },
+        "alphaMode": {
+          "enum": [
+            "premultiplied",
+            "straight"
+          ]
+        }
+      },
+      "required": [
+        "source"
+      ]
+    },
+    "paramsExportImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ]
+        },
+        "quality": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "embedColorProfile": {
+          "type": "boolean"
+        }
+      }
+    },
+    "paramsAdjust": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exposure": {
+          "type": "number",
+          "minimum": -2.0,
+          "maximum": 2.0
+        },
+        "brightness": {
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "contrast": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 4.0
+        },
+        "saturation": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 2.0
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": -1000.0,
+          "maximum": 1000.0
+        },
+        "tint": {
+          "type": "number",
+          "minimum": -100.0,
+          "maximum": 100.0
+        }
+      }
+    },
+    "paramsCrop": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rect": {
+          "$ref": "#/$defs/rect"
+        },
+        "aspectRatio": {
+          "enum": [
+            "free",
+            "1:1",
+            "4:5",
+            "3:4",
+            "16:9"
+          ]
+        }
+      },
+      "required": [
+        "rect"
+      ]
+    },
+    "paramsTransform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rotation": {
+          "type": "number",
+          "minimum": -180.0,
+          "maximum": 180.0
+        },
+        "scaleX": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 10.0
+        },
+        "scaleY": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 10.0
+        },
+        "translateX": {
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "translateY": {
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "flipX": {
+          "type": "boolean"
+        },
+        "flipY": {
+          "type": "boolean"
+        }
+      }
+    },
+    "paramsBlur": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "gaussian",
+            "disc",
+            "zoom",
+            "motion"
+          ]
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0
+        },
+        "center": {
+          "$ref": "#/$defs/vec2"
+        },
+        "angle": {
+          "type": "number",
+          "minimum": -180.0,
+          "maximum": 180.0
+        }
+      }
+    },
+    "paramsColorTone": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "style": {
+          "enum": [
+            "none",
+            "sepia",
+            "cinematic",
+            "cool",
+            "warm",
+            "mono"
+          ]
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "highlights": {
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "shadows": {
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "paramsSharpen": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 3.0
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 10.0
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "paramsVignette": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "intensity": {
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.5
+        },
+        "softness": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "center": {
+          "$ref": "#/$defs/vec2"
+        }
+      }
+    },
+    "paramsBlend": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "normal",
+            "multiply",
+            "screen",
+            "overlay",
+            "softLight"
+          ]
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "stepReadImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "node": {
+          "const": "ReadImage"
+        },
+        "params": {
+          "$ref": "#/$defs/paramsReadImage"
+        },
+        "metadata": {
+          "$ref": "#/$defs/stepMetadata"
+        }
+      },
+      "required": [
+        "id",
+        "node",
+        "params"
+      ]
+    },
+    "stepExportImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "node": {
+          "const": "ExportImage"
+        },
+        "input": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "params": {
+          "$ref": "#/$defs/paramsExportImage"
+        },
+        "metadata": {
+          "$ref": "#/$defs/stepMetadata"
+        }
+      },
+      "required": [
+        "id",
+        "node",
+        "input",
+        "params"
+      ]
+    },
+    "stepSingleInputBase": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "input": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "metadata": {
+          "$ref": "#/$defs/stepMetadata"
+        }
+      },
+      "required": [
+        "id",
+        "input"
+      ]
+    },
+    "stepAdjust": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "Adjust"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsAdjust"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepCrop": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "Crop"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsCrop"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepTransform": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "Transform"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsTransform"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepBlur": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "Blur"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsBlur"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepColorTone": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "ColorTone"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsColorTone"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepSharpen": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "Sharpen"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsSharpen"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepVignette": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stepSingleInputBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "const": "Vignette"
+            },
+            "params": {
+              "$ref": "#/$defs/paramsVignette"
+            }
+          },
+          "required": [
+            "node",
+            "params"
+          ]
+        }
+      ]
+    },
+    "stepBlend": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "node": {
+          "const": "Blend"
+        },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "imageA": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "imageB": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "mask": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "imageA",
+            "imageB",
+            "mask"
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/paramsBlend"
+        },
+        "metadata": {
+          "$ref": "#/$defs/stepMetadata"
+        }
+      },
+      "required": [
+        "id",
+        "node",
+        "inputs",
+        "params"
+      ]
+    },
+    "pipelineStep": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/stepReadImage"
+        },
+        {
+          "$ref": "#/$defs/stepExportImage"
+        },
+        {
+          "$ref": "#/$defs/stepAdjust"
+        },
+        {
+          "$ref": "#/$defs/stepCrop"
+        },
+        {
+          "$ref": "#/$defs/stepTransform"
+        },
+        {
+          "$ref": "#/$defs/stepBlur"
+        },
+        {
+          "$ref": "#/$defs/stepColorTone"
+        },
+        {
+          "$ref": "#/$defs/stepSharpen"
+        },
+        {
+          "$ref": "#/$defs/stepVignette"
+        },
+        {
+          "$ref": "#/$defs/stepBlend"
+        }
+      ]
+    },
+    "nodeCatalogDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "specVersion": {
+          "const": "2.0"
+        },
+        "product": {
+          "const": "PhotoSteps"
+        },
+        "engine": {
+          "const": "CAT"
+        },
+        "defaults": {
+          "$ref": "#/$defs/defaults"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nodeDefinition"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "specVersion",
+        "product",
+        "engine",
+        "defaults",
+        "nodes"
+      ]
+    },
+    "pipelineDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pipelineVersion": {
+          "const": "2.0"
+        },
+        "app": {
+          "const": "PhotoSteps"
+        },
+        "engine": {
+          "const": "CAT"
+        },
+        "defaults": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "workingColorSpace": {
+              "enum": [
+                "sRGB",
+                "linear_sRGB",
+                "displayP3"
+              ]
+            },
+            "alphaMode": {
+              "enum": [
+                "premultiplied",
+                "straight"
+              ]
+            },
+            "coordinateSpace": {
+              "enum": [
+                "normalized_uv",
+                "pixel"
+              ]
+            },
+            "origin": {
+              "enum": [
+                "top_left",
+                "bottom_left"
+              ]
+            }
+          },
+          "required": [
+            "workingColorSpace",
+            "alphaMode",
+            "coordinateSpace",
+            "origin"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pipelineStep"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "pipelineVersion",
+        "app",
+        "engine",
+        "defaults",
+        "steps"
+      ]
+    }
+  }
+}
